@@ -1,5 +1,5 @@
 #include <iostream>
-#include <array>
+#include <vector>
 #include <fstream>
 #include <numeric> // for std::accumulate
 #include <algorithm> // for std::for_each, std::max_element, std::min_element
@@ -11,12 +11,12 @@ using namespace std;
 const size_t INVENTORY_SIZE = 30;
 
 // helper function to print the contents of the array
-void printInventory(const array<int, INVENTORY_SIZE>& arr, const string& title) {
+void printInventory(const vector<int>& vec, const string& title) {
     cout << "\n--- " << title << " ---\n";
     cout << "Book ID | Stock\n";
     cout << "----------------\n";
     int id = 0;
-    for (const auto& stock : arr) {
+    for (const auto& stock : vec) {
         cout << "  " << id++ << "\t|   " << stock << "\n";
     }
     cout << "----------------\n";
@@ -24,7 +24,7 @@ void printInventory(const array<int, INVENTORY_SIZE>& arr, const string& title) 
 
 int main() {
     //declare a std::array to hold the book inventory.
-    array<int, INVENTORY_SIZE> inventory;
+    vector<int> inventory;
 
     // read from the external data file into the array.
     ifstream inputFile("inventory.txt");
@@ -33,25 +33,28 @@ int main() {
         return 1;
     }
 
-    int* dataPtr = inventory.data();
-    for (size_t i = 0; i < INVENTORY_SIZE; ++i) {
-        inputFile >> dataPtr[i];
+    int stockValue;
+    while (inputFile >> stockValue) {
+        inventory.push_back(stockValue);
     }
     inputFile.close();
 
     cout << "Successfully loaded initial inventory from file.";
     printInventory(inventory, "Initial Inventory Status");
 
-    // 3. Using Member Functions to Simulate Bookstore Operations
-    cout << "\n*** DEMONSTRATING STD::ARRAY MEMBER FUNCTIONS ***\n";
+    // using Member Functions to Simulate Bookstore Operations
+    cout << "\n*** DEMONSTRATING STD::VECTOR MEMBER FUNCTIONS ***\n";
 
-    // size(), max_size(), and empty() - Basic Info
+    // size(), capacity(), max_size(), and empty() - Basic Info
     cout << "\n1. Checking Inventory Capacity:\n";
     cout << "   - We carry " << inventory.size() << " different book titles.\n";
+    cout << "   - Current memory allocation can hold " << inventory.capacity() << " titles before needing to reallocate.\n";
     cout << "   - The maximum possible titles we can carry is " << inventory.max_size() << ".\n";
     if (!inventory.empty()) {
-        cout << "   - The inventory array is not empty.\n";
+        cout << "   - The inventory vector is not empty.\n";
     }
+
+    
 
     // at() - Safely checking stock for a specific book ID
     cout << "\n2. Safely Checking Stock for Book ID 5:\n";
@@ -60,7 +63,7 @@ int main() {
         cout << "   - Attempting to access an invalid Book ID (99)...\n";
         inventory.at(99); // This will throw an exception
     } catch (const out_of_range& e) {
-        cerr << "   - CAUGHT ERROR: " << e.what() << " - Invalid Book ID.\n";
+        cout << "   - CAUGHT ERROR: " << e.what() << " - Invalid Book ID.\n";
     }
 
     // operator[] - Unsafe (but faster) access
@@ -88,24 +91,28 @@ int main() {
         cout << "   - Stock: " << stock << "\n";
     });
 
-    // fill() - Simulate a flash sale where we restock every book to a specific amount
     cout << "\n7. Simulating a 'Special Edition' restock...\n";
-    inventory.fill(50);
+    fill(inventory.begin(), inventory.end(), 50);
     printInventory(inventory, "Inventory After Filling with 50");
 
     // swap() - A new shipment arrives, and we swap out the entire inventory display
     cout << "\n8. A new shipment arrived! Swapping inventories...\n";
-    array<int, INVENTORY_SIZE> newShipment;
-    newShipment.fill(15); // The new shipment has 15 of every book
+    vector<int> newShipment;
+    newShipment.push_back(5); // The new shipment is much smaller
+    newShipment.push_back(10);
+    newShipment.push_back(15);
     
     inventory.swap(newShipment);
 
-    printInventory(inventory, "Inventory After SWAP (Now showing new shipment)");
-    printInventory(newShipment, "Old 'Special Edition' Stock (Now in newShipment array)");
+    printInventory(inventory, "Inventory After SWAP (Now showing tiny new shipment)");
+    printInventory(newShipment, "Old 'Special Edition' Stock (Now in newShipment vector)");
 
-    // Relational Operators - Compare the swapped arrays
-    if (inventory != newShipment) {
-        cout << "\nThe current inventory is now different from the old stock.\n";
+    // clear() - Emptying the vector
+    cout << "\n9. End of day sale! Everything sold out.\n";
+    inventory.clear();
+    cout << "   - Current number of titles: " << inventory.size() << "\n";
+    if (inventory.empty()) {
+        cout << "   - The inventory is now empty.\n";
     }
 
     return 0;
